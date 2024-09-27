@@ -1,0 +1,25 @@
+{
+  "name": "detector-de-texto-manuscrito-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Renard Bergson",
+  "license": "ISC",
+  "description": "This is an api which uses google-cloud-vision to recognize handwritten text and chat-gpt to require opinions on it",
+  "dependencies": {
+    "@google-cloud/vision": "^4.3.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "google-gax": "^4.4.1",
+    "ip": "^2.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
