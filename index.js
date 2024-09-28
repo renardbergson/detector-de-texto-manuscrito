@@ -3,18 +3,16 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const IP = require("ip");
-const fs = require("fs");
-//const path = require("path");
-
-// Environment variables
-require("dotenv").config();
+const fs = require('fs-extra');
+const multer = require("multer");
 
 // Cors
 app.use(cors()); 
 
-// Google cloud vision
-// Auth with api key
-// Apy key reference
+// Environment variables
+require("dotenv").config();
+
+// Google cloud vision - Auth with api key - Apy key reference
 const vision = require("@google-cloud/vision").v1p3beta1;
 const {GoogleAuth, grpc} = require("google-gax");
 const apiKey = process.env.GOOGLE_API_KEY;
@@ -31,22 +29,41 @@ function getApiKeyCredentials() {
   return credentials;
 }
 
-// Routes
-app.get("/text", async (req, res) => {
-  const sslCreds = getApiKeyCredentials();
-  const client = new vision.ImageAnnotatorClient({sslCreds});
-
-  const file = "imagem.jpeg";
-  const request = {
-    image: {
-      content: fs.readFileSync(file),
-    }
+// Storage
+const storage = multer.diskStorage({
+  destination: (req, file, callback) => {
+    callback(null, "./uploads");
+  },
+  filename: (req, file, callback) => {
+    callback(null, `${Date.now()}-${file.originalname}`);
   }
+})
 
-  const [result] = await client.documentTextDetection(request);
-  const fullTextAnnotation = result.fullTextAnnotation;
+const upload = multer({storage});
 
-  res.send(fullTextAnnotation.text);
+// Routes
+app.post("/file-upload", upload.single("file"), async (req, res) => {
+  try {
+    const sslCreds = getApiKeyCredentials();
+    const client = new vision.ImageAnnotatorClient({sslCreds});
+
+    const file = `./uploads/${req.file.filename}`;
+    const request = {
+      image: {
+        content: fs.readFileSync(file),
+      }
+    }
+
+    const [result] = await client.documentTextDetection(request);
+    const fullTextAnnotation = result.fullTextAnnotation;
+
+    await fs.remove(`./uploads/${req.file.filename}`);
+
+    return res.send(fullTextAnnotation.text);
+  } 
+  catch(error) {
+    res.status(500).json({error: error});
+  }
 })
 
 // 404 (not found)
