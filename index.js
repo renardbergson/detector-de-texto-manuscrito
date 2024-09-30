@@ -59,7 +59,7 @@ app.post("/file-upload", upload.single("file"), async (req, res) => {
 
     await fs.remove(`./uploads/${req.file.filename}`);
 
-    return res.send(fullTextAnnotation.text);
+    return res.send(fullTextAnnotation);
   } 
   catch(error) {
     res.status(500).json({error: error});
