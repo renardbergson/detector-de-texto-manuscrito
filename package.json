@@ -13,6 +13,7 @@
   "description": "This is an api which uses google-cloud-vision to recognize handwritten text and chat-gpt to require opinions on it",
   "dependencies": {
     "@google-cloud/vision": "^4.3.0",
+    "axios": "^1.7.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
