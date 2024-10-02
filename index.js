@@ -33,7 +33,7 @@ function getApiKeyCredentials() {
   return credentials;
 }
 
-// Directory and Storage
+// Directory, storage and upload
 const directory = "./uploads";
 !fs.existsSync(directory) ? fs.mkdirSync(directory) : null;
 
@@ -47,6 +47,9 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({storage});
+
+// Open AI key
+const openAIapiKey = process.env.OPEN_AI_KEY;
 
 // Routes
 app.post("/file-upload", upload.single("file"), async (req, res) => {
@@ -73,53 +76,122 @@ app.post("/file-upload", upload.single("file"), async (req, res) => {
   }
 })
 
-//const openAIapiKey = process.env.OPEN_AI_KEY;
-app.post('/text-correction', async (req, res) => {
+app.post('/text-format', async (req, res) => {
   const { text } = req.body;
+  const prompt = `
+        Corrija a ortografia e formate o seguinte texto, garantindo que:
+        1. Se hover títulos, que fiquei separados
+        2. Se houver parágrafos, que fiquem separados
+        3. O texto fique visualmente agradável
+        4. Insira quebra de linhas nos pontos em que achar necessário.
+        5. Na resposta não haja nada além do texto corrigido
+        Texto: ${text}
+    `;
 
-  // Faz a requisição para a API do LanguageTool
   try {
-      const response = await fetch('https://api.languagetool.org/v2/check', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: new URLSearchParams({
-              text: text,
-              language: 'pt-BR'
-              // O new URLSearchParams, converte um objeto ou um conjunto de pares chave-valor em uma string no formato key1=value1&key2=value2. Este formato é o que a maioria das APIs espera quando se usa Content-Type: application/x-www-form-urlencoded. (Como se os dados estivessem vindo de um formulário)
-          })
-      });
-
-      const data = await response.json();
-      let correctedText = text; // Inicia com o texto original, obtido na requisição
-
-      data.matches.reverse().forEach(error => {
-        // "matches" são possíveis erros encontrados
-        // Chamamos de "error", cada possível erro encontrado e, cada "error" possui uma propriedade chamada "replacements", que é um array de objetos, contendo sugestões de correção 
-        // Cada objeto desse array possui a propriedade que interessa: "value"
-        // com "error.replacements[0]", usaremos apenas a primeira correção sugerida
-        // "data.matches.reverse()" faz as substituições acontecerem do final para o início do texto. Isso evita problemas de deslocamento de índices ao modificar o texto, já que cada substituição pode alterar o comprimento do texto
-        const start = error.offset;
-        const end = error.offset + error.length;
-        const correction = error.replacements[0] ? error.replacements[0].value : null;
-        // "error" possui as propriedades "offset" (início do erro) e "length" (comprimento do erro)
-
-        if (correction) {
-          correctedText = correctedText.slice(0, start) + correction + correctedText.slice(end);
-          // "correctedText.slice(0, start)" é o recorte de todos os caracteres do texto original, desde o início (índice 0) até o início do erro
-          // "correction" contém a correção escolhida anteriormente
-          // "error.offset + error.length" é o recorte do restante de tudo, começando pelo final do erro 
-          // "correctedText" agora é a junção desses 3 recortes
+    const response = await axios.post("https://api.openai.com/v1/chat/completions", {
+        model: "gpt-3.5-turbo",
+        messages: [
+            { role: "system", content: "Você é um assistente que corrige ortografia e formatação de textos." },
+            { role: "user", content: prompt }
+        ],
+        max_tokens: null,
+        temperature: 0.7
+    }, {
+        headers: {
+            "Authorization": `Bearer ${openAIapiKey}`,
+            "Content-Type": "application/json"
         }
-      })
+    });
 
-      res.status(200).json(correctedText);
-  } catch (error) {
-      console.error('Erro ao acessar a API do LanguageTool:', error);
-      res.status(500).send('Erro ao acessar a API de correção.');
+    res.status(200).send(JSON.stringify(response.data.choices[0].message.content));
+  } 
+  catch (error) {
+    console.error("Erro ao fazer a requisição:", error.response ? error.response.data : error.message);
   }
 });
+
+app.post("/text-correction", async (req, res) => {
+  const { theme, text } = req.body;
+  
+  const prompt = `
+        Tema: ${theme}
+        Texto: ${text}
+        
+        O ${theme} tem a ver com o ${text}? O ${theme} foi bem explorado?
+        
+        Com base nas 5 competências geralmente avaliadas ao corrigir uma redação, corrija ${text}.
+
+        Aborde cada competência dentro de elementos html, insira margens de espaçamento entre eles.
+
+        Em "nota sugerida", insira a nota que você daria à redação, considerando valores entre 0 e 1000.
+
+        Em "sugestão de melhorias", insira as tuas sugestões para aprimorar ${text}.
+
+        O html deve seguir mais ou menos este modelo:
+
+        "<div>
+          <h2>Competência 1: ...</h2>
+          <p> ... </p>
+
+          <hr>
+
+          <h2>Competência 2: ...</h2>
+          <p> ... </p>
+
+          <hr>
+
+          <h2>Competência 3: ...</h2>
+          <p> ... </p>
+
+          <hr>
+
+          <h2>Competência 4: ...</h2>
+          <p> ... </p>
+
+          <hr>
+
+          <h2>Competência 5: ...</h2>
+          <p> ... </p>
+
+          <hr>
+
+          <h2>Sugestões de melhorias</h2>
+          <p> ... </p>
+
+          <hr>
+
+          <div style="margin-top: 20px; color: red;">Nota sugerida: ...</div>
+        </div>"
+    `;
+
+  try {
+    const response = await axios.post("https://api.openai.com/v1/chat/completions", {
+        model: "gpt-3.5-turbo",
+        messages: [
+            { role: "system", content: "Você é um especialista que analisa aspectos de uma redação para corrigí-la." },
+            { role: "user", content: prompt }
+        ],
+        max_tokens: null,
+        temperature: 0.7
+    }, {
+        headers: {
+            "Authorization": `Bearer ${openAIapiKey}`,
+            "Content-Type": "application/json"
+        }
+    });
+
+    let correction = response.data.choices[0].message.content;
+    
+    // remove delimiters
+    correction = correction.replace(/```html/g, '').replace(/```/g, '').replace(/\n/g, '');
+
+    res.status(200).send(JSON.stringify(correction));
+  } 
+  catch (error) {
+    console.error("Erro ao fazer a requisição:", error.response ? error.response.data : error.message);
+  }
+})
 
 // 404 (not found)
 app.use((req, res) => {
