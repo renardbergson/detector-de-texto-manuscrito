@@ -122,7 +122,7 @@ app.post("/text-correction", async (req, res) => {
         
         Com base nas 5 competências geralmente avaliadas ao corrigir uma redação, corrija ${text}.
 
-        Aborde cada competência dentro de elementos html, insira margens de espaçamento entre eles.
+        Aborde cada competência dentro dos parágrafos, insira margens de espaçamento entre eles.
 
         Em "nota sugerida", insira a nota que você daria à redação, considerando valores entre 0 e 1000.
 
@@ -131,27 +131,27 @@ app.post("/text-correction", async (req, res) => {
         O html deve seguir mais ou menos este modelo:
 
         "<div>
-          <h2>Competência 1: ...</h2>
+          <h2>Competência 1: Domínio da norma culta da língua escrita</h2>
           <p> ... </p>
 
           <hr>
 
-          <h2>Competência 2: ...</h2>
+          <h2>Competência 2: Compreensão da proposta e desenvolvimento do tema</h2>
           <p> ... </p>
 
           <hr>
 
-          <h2>Competência 3: ...</h2>
+          <h2>Competência 3: Organização das ideias e coesão</h2>
           <p> ... </p>
 
           <hr>
 
-          <h2>Competência 4: ...</h2>
+          <h2>Competência 4: Argumentação e conhecimento dos mecanismos linguísticos</h2>
           <p> ... </p>
 
           <hr>
 
-          <h2>Competência 5: ...</h2>
+          <h2>Competência 5: Proposta de intervenção para o problema apresentado</h2>
           <p> ... </p>
 
           <hr>
