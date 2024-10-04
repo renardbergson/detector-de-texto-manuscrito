@@ -52,6 +52,15 @@ const upload = multer({storage});
 const openAIapiKey = process.env.OPEN_AI_KEY;
 
 // Routes
+app.get("/", (req, res) => {
+  try {
+    res.status(200).send("Bem vindo(a) ao Essay Vision! Seu corretor de redação manuscrita.");
+  }
+  catch(error) {
+    console.error("Erro ao fazer a requisição:", error);
+  }
+})
+
 app.post("/file-upload", upload.single("file"), async (req, res) => {
   try {
     const sslCreds = getApiKeyCredentials();
