@@ -34,7 +34,7 @@ function getApiKeyCredentials() {
 }
 
 // Directory, storage and upload
-const directory = "../uploads";
+const directory = "./uploads";
 !fs.existsSync(directory) ? fs.mkdirSync(directory) : null;
 
 const storage = multer.diskStorage({
