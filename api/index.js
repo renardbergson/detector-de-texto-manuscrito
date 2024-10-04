@@ -34,7 +34,7 @@ function getApiKeyCredentials() {
 }
 
 // Directory, storage and upload
-const directory = "./uploads";
+const directory = "../uploads";
 !fs.existsSync(directory) ? fs.mkdirSync(directory) : null;
 
 const storage = multer.diskStorage({
@@ -201,6 +201,3 @@ app.use((req, res) => {
 // Server info
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`server is listening on port ${port} and localhost ${IP.address()}`));
-
-// Export the Express API
-module.exports = app;
