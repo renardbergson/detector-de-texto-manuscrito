@@ -201,3 +201,6 @@ app.use((req, res) => {
 // Server info
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`server is listening on port ${port} and localhost ${IP.address()}`));
+
+// Export the Express API
+module.exports = app;
